@@ -9,6 +9,7 @@ namespace Simulation
         public const float PI = 3.142159274f;
 
         private static Random Rand;
+        private static readonly object RandLock = new();
 
         public static float Random(float min, float max)
         {
@@ -16,13 +17,13 @@ namespace Simulation
         }
         public static int RandomInt(int min_, int max_)
         {
-            if(Rand == null)
+            lock (RandLock)
             {
-                Rand = new(DateTime.Now.Millisecond); ;
+                Rand ??= new Random(Guid.NewGuid().GetHashCode());
+                int min = (int)Min(min_, max_);
+                int max = (int)Max(min_, max_);
+                return Rand.Next(min, max + 1);
             }
-            int min = (int)Min(min_, max_);
-            int max = (int)Max(min_, max_);    
-            return Rand.Next(min, max + 1);
         }
         public static float Abs(float value)
         {

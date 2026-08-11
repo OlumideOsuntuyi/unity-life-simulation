@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 
 using UnityEngine;
@@ -7,8 +7,8 @@ using UnityEngine;
 public class MainThreadDispatcher : MonoBehaviour
 {
     static MainThreadDispatcher Instance;
-    Queue<Action> MAIN_THREAD_QUEUE = new();
-    Queue<Action> ALT_THREAD_QUEUE = new();
+    ConcurrentQueue<Action> MAIN_THREAD_QUEUE = new();
+    ConcurrentQueue<Action> ALT_THREAD_QUEUE = new();
     Thread queueThread;
 
     private void Awake()
@@ -41,18 +41,22 @@ public class MainThreadDispatcher : MonoBehaviour
     }
     private void Update()
     {
-        if (MAIN_THREAD_QUEUE.Count > 0)
+        if (MAIN_THREAD_QUEUE.TryDequeue(out var action))
         {
-            MAIN_THREAD_QUEUE.Dequeue()?.Invoke();
+            action?.Invoke();
         }
     }
     private void AltUpdate()
     {
         while (true)
         {
-            if(ALT_THREAD_QUEUE.Count > 0)
+            if(ALT_THREAD_QUEUE.TryDequeue(out var action))
             {
-                ALT_THREAD_QUEUE.Dequeue()?.Invoke();
+                action?.Invoke();
+            }
+            else
+            {
+                Thread.Sleep(10);
             }
         }
     }

@@ -48,20 +48,22 @@ namespace Simulation
             {
                 float minDis = float.PositiveInfinity;
                 Vector3 candidate = new();
-                foreach (var location in locations)
+                int candidateIndex = -1;
+                for (int i = 0; i < locations.Count; i++)
                 {
-                    var pos = (Vector3)location.memory;
+                    var pos = (Vector3)locations[i].memory;
                     float dis = Vector3.Distance(self.gameObject.transform.position, pos);
                     if(dis < minDis)
                     {
                         candidate = pos;
+                        candidateIndex = i;
                         minDis = dis;
                     }
                 }
-                if(minDis < float.PositiveInfinity)
+                if(candidateIndex >= 0)
                 {
                     position = candidate;
-                    locations.Remove(locations.Find(l => l.memory == (object)candidate));
+                    locations.RemoveAt(candidateIndex);
                     return true;
                 }
             }

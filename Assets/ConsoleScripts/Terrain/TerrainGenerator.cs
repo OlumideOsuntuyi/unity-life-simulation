@@ -50,7 +50,8 @@ namespace Simulation
         /// <returns> clamped value</returns>
         public static float Clamp(ref float noise)
         {
-            return (noise + 1) * .5f;
+            noise = (noise + 1) * .5f;
+            return noise;
         }
         public float Generate(float x, float y, Vector3 position)
         {

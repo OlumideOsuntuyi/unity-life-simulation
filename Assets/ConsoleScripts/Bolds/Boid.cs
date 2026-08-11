@@ -189,7 +189,7 @@ namespace Simulation.Boids
                 }
                 
                 this.neighbours = neighbours;
-                if(neighbours.Count > 0)
+                if(neighbours.Count > 0 && flockCount > 0)
                 {
                     if (neighbours.Count > 1)
                     {
@@ -328,8 +328,12 @@ namespace Simulation.Boids
 
         public Vector3 TranslateDirection(Vector3 direction)
         {
-            Position += direction;
-
+            Vector3 targetPosition = Position + direction;
+            if (Colliding(targetPosition))
+            {
+                return direction;
+            }
+            Position = targetPosition;
             return Vector3.zero;
         }
 

@@ -62,9 +62,9 @@ namespace Simulation.Boids
         }
         public static bool ValidChunk(ref Vector3Int chunk)
         {
-            return chunk.x is >= 0 and < CHUNK_SIZE &&
-                chunk.y is >= 0 and < CHUNK_SIZE &&
-                chunk.z is >= 0 and < CHUNK_SIZE;
+            return chunk.x is >= (-CHUNK_SIZE) and < CHUNK_SIZE &&
+                chunk.y is >= (-CHUNK_SIZE) and < CHUNK_SIZE &&
+                chunk.z is >= (-CHUNK_SIZE) and < CHUNK_SIZE;
         }
         public static bool ValidatePosition(Vector3 position)
         {

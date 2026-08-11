@@ -17,7 +17,7 @@ namespace Simulation
             if (Raycaster.Raycast(ray, out var hit, sns))
             {
                 var life = hit.collider.gameObject.GetLife();
-                if (life.UUID != self.UUID)
+                if (life != null && life.UUID != self.UUID)
                 {
                     if(life.data.genes.id == self.data.genes.id)
                     {

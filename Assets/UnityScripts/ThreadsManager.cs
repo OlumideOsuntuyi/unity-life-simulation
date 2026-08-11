@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -17,8 +18,8 @@ namespace Simulation
         public const int MAX_THREADS = 2;
         private static ThreadsManager Instance;
         private Thread[] threads;
-        private Queue<Action>[] queue;
-        private Queue<Action> mainQueue, forcedMainQueue;
+        private ConcurrentQueue<Action>[] queue;
+        private ConcurrentQueue<Action> mainQueue, forcedMainQueue;
         private List<QueuedAction> queuedActions;
         public int[] queueSize;
         public int mainQueueSize, forcedMainQueueSize;
@@ -31,7 +32,7 @@ namespace Simulation
             queuedActions = new();
             queueSize = new int[MAX_THREADS];
             threads = new Thread[MAX_THREADS];
-            queue = new Queue<Action>[MAX_THREADS + 1];
+            queue = new ConcurrentQueue<Action>[MAX_THREADS + 1];
             for (int i = 0; i < MAX_THREADS; i++)
             {
                 queue[i] = new();
@@ -44,9 +45,9 @@ namespace Simulation
                     {
                         if (mode == PlayModeStateChange.ExitingPlayMode)
                         {
-                            while (mainQueue != null && mainQueue.Count > 0)
+                            while (mainQueue != null && mainQueue.TryDequeue(out var exitAction))
                             {
-                                mainQueue.Dequeue()?.Invoke();
+                                exitAction?.Invoke();
                             }
                             Abort();
                         }
@@ -77,14 +78,14 @@ namespace Simulation
 
             const int mainInvokedLimit = 20;
             int mainInvoked = 0;
-            while (mainQueue.Count > 0 && mainInvoked < mainInvokedLimit)
+            while (mainInvoked < mainInvokedLimit && mainQueue.TryDequeue(out var mainAction))
             {
-                mainQueue.Dequeue()?.Invoke();
+                mainAction?.Invoke();
                 mainInvoked++;
             }
-            while (forcedMainQueue.Count > 0)
+            while (forcedMainQueue.TryDequeue(out var forcedAction))
             {
-                forcedMainQueue.Dequeue()?.Invoke();
+                forcedAction?.Invoke();
             }
             for (int i = 0; i < MAX_THREADS; i++)
             {
@@ -107,12 +108,9 @@ namespace Simulation
             int index = (int)pass;
             while (true)
             {
-                if (queue[index].Count > 0)
+                if (queue[index].TryDequeue(out var action))
                 {
-                    if (queue[index].TryDequeue(out var action))
-                    {
-                        action?.Invoke();
-                    }
+                    action?.Invoke();
                 }
                 else
                 {

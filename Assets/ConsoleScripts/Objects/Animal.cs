@@ -100,7 +100,7 @@ namespace Simulation
         }
         public float Affinity(Animal life)
         {
-            return 1;
+            return life.data.genes.id == data.genes.id ? 1f : 0f;
         }
         #endregion
 

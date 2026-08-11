@@ -95,7 +95,8 @@ namespace Simulation
             Vector3 halfSize = col.size * .5f;
             float closestX = Math.Clamp(transform.position.x, col.transform.position.x - halfSize.x, col.transform.position.x + halfSize.x);
             float closestY = Math.Clamp(transform.position.y, col.transform.position.y - halfSize.y, col.transform.position.y + halfSize.y);
-            Vector3 closestPoint = new Vector3(closestX, closestY, transform.position.z);
+            float closestZ = Math.Clamp(transform.position.z, col.transform.position.z - halfSize.z, col.transform.position.z + halfSize.z);
+            Vector3 closestPoint = new Vector3(closestX, closestY, closestZ);
             float range = Vector3.Distance(closestPoint, transform.position);
             if(range <= radius)
             {
@@ -225,6 +226,7 @@ namespace Simulation
                 {
                     contactNormal = -1 * axis;
                 }
+                return true;
             }
             contactNormal = new();
             return false;

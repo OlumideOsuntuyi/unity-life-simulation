@@ -10,6 +10,7 @@ namespace Simulation
         public static Dictionary<uint, SimObject> _objects = new();
         public static List<SimObject> objects = new();
         private static uint nextHash;
+        private static readonly object _lock = new();
         public static void Update()
         {
             if(objects.Count > 0)
@@ -46,13 +47,21 @@ namespace Simulation
         public SimObject()
         {
             name = "New GameObject";
-            hash = nextHash;
+            lock (_lock)
+            {
+                hash = nextHash;
+                nextHash++;
+            }
             Init();
         }
         public SimObject(string name)
         {
             this.name = name;
-            hash = nextHash;
+            lock (_lock)
+            {
+                hash = nextHash;
+                nextHash++;
+            }
             Init();
         }
         private void Init()
@@ -62,10 +71,12 @@ namespace Simulation
             transform = AddComponent<Transform>();
             collider = AddComponent<Collider>();
             rigidBody = AddComponent<DynamicBody>();
-            nextHash++;
 
-            _objects.Add(hash, this);
-            objects.Add(this);
+            lock (_lock)
+            {
+                _objects.Add(hash, this);
+                objects.Add(this);
+            }
         }
         private void _Update()
         {
@@ -92,10 +103,12 @@ namespace Simulation
         {
             _isActive = false;
             components.Clear();
-            _objects.Remove(hash);
-            objects.Remove(this);
+            lock (_lock)
+            {
+                _objects.Remove(hash);
+                objects.Remove(this);
+            }
             UnityEngine.Debug.Log($"Destroy {UUID} object: hash:{hash}");
-            GC.Collect();
         }
         public Animal GetLife()
         {
@@ -103,7 +116,11 @@ namespace Simulation
         }
         public T GetComponent<T>() where T : Component
         {
-            return components[typeof(T).Name] as T;
+            if (components.TryGetValue(typeof(T).Name, out var component))
+            {
+                return component as T;
+            }
+            return null;
         }
         public T AddComponent<T>() where T : IComponent, new()
         {
